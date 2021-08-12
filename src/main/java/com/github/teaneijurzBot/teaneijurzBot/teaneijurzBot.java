@@ -5,8 +5,15 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.ReactiveEventAdapter;
 import discord4j.core.event.domain.interaction.SlashCommandEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.command.ApplicationCommandInteraction;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.core.object.component.ActionRow;
+import discord4j.core.object.component.Button;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.User;
 import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -15,6 +22,8 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
+
+import java.util.function.Consumer;
 
 public class teaneijurzBot {
 
@@ -90,7 +99,24 @@ public class teaneijurzBot {
             @Override
             public Publisher<?> onSlashCommand(SlashCommandEvent event) {
                 // TODO: Implement actual logic
-                return event.reply("Not yet implemented, Coming Soon:tm:.");
+                if (event.getCommandName().equals("pdgame")) {
+                    ApplicationCommandInteraction acid = event.getInteraction().getCommandInteraction().get();
+                    User opponent = acid.getOption("opponent")
+                            .flatMap(ApplicationCommandInteractionOption::getValue)
+                            .map(ApplicationCommandInteractionOptionValue::asUser)
+                            .get()
+                            .block();
+                    User invoker = event.getInteraction().getUser();
+                    event.reply(spec -> spec
+                            .setComponents(
+                                    ActionRow.of(
+                                            Button.success("Yes", ReactionEmoji.codepoints("U+2714"), "Yes"),
+                                            Button.danger("No", ReactionEmoji.codepoints("U+274C"), "No")
+                                    ))
+                            .setContent(opponent.getMention() + ", accept match request against " + invoker.getUsername() + "?")
+                    ).block();
+                }
+                return Mono.empty();
             }
         }).blockLast();
 
