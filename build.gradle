@@ -6,13 +6,14 @@ group 'com.github.teaneijurzBot.teaneijurzBot'
 version '2021.08.08'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    implementation 'com.discord4j:discord4j-core:3.1.7'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    implementation 'com.discord4j:discord4j-core:3.2.0-SNAPSHOT'
     implementation 'ch.qos.logback:logback-classic:1.2.5'
 }
 

@@ -3,6 +3,7 @@ package com.github.teaneijurzBot.teaneijurzBot;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.ReactiveEventAdapter;
+import discord4j.core.event.domain.interaction.ButtonInteractEvent;
 import discord4j.core.event.domain.interaction.SlashCommandEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.command.ApplicationCommandInteraction;
@@ -23,9 +24,9 @@ import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
-import java.util.function.Consumer;
+import java.util.List;
 
-public class teaneijurzBot {
+public class  teaneijurzBot {
 
     // ID to use for slash commands
     private static final long TEEN_GUILD_ID = 812850829044351016L;
@@ -107,14 +108,32 @@ public class teaneijurzBot {
                             .get()
                             .block();
                     User invoker = event.getInteraction().getUser();
-                    event.reply(spec -> spec
-                            .setComponents(
-                                    ActionRow.of(
-                                            Button.success("Yes", ReactionEmoji.codepoints("U+2714"), "Yes"),
-                                            Button.danger("No", ReactionEmoji.codepoints("U+274C"), "No")
+                    event.reply(InteractionApplicationCommandCallbackSpec.builder()
+                            .content(String.format("%s, accept match request against %s?", opponent.getMention(), invoker.getUsername()))
+                            .components(
+                                    List.of(
+                                            ActionRow.of(
+                                                    Button.success("Yes", ReactionEmoji.codepoints("U+2714"), "Yes"),
+                                                    Button.danger("No", ReactionEmoji.codepoints("U+274C"), "No"))
                                     ))
-                            .setContent(opponent.getMention() + ", accept match request against " + invoker.getUsername() + "?")
+                            .build()
                     ).block();
+                    long responseId = event.getInteractionResponse().getInitialResponse().block().id().asLong();
+
+                    client.on(ButtonInteractEvent.class)
+                            .filter(press -> press.getMessageId().asLong() == responseId)
+                            .filter(press -> press.getInteraction().getUser().equals(opponent))
+                            .next()
+                            .flatMap(press -> switch (press.getCustomId()) {
+                                case "Yes" -> press.edit(InteractionApplicationCommandCallbackSpec.builder()
+                                        .content("Starting Match!")
+                                        .components(List.of()).build());
+                                case "No" -> press.edit(InteractionApplicationCommandCallbackSpec.builder()
+                                        .content("Match declined.")
+                                        .components(List.of()).build());
+                                default -> Mono.empty();
+                            })
+                            .subscribe();
                 }
                 return Mono.empty();
             }
