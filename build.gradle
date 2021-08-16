@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.github.teaneijurzBot.teaneijurzBot'
-version '2021.08.08'
+version '2021.08.15'
 
 repositories {
     mavenLocal()
@@ -20,3 +20,15 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+jar {
+    duplicatesStrategy 'include'
+    manifest {
+        attributes "Main-Class": "com.github.teaneijurzBot.teaneijurzBot.teaneijurzBot"
+    }
+
+    from {
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
